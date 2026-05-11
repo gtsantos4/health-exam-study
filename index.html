@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Health Insurance Exam — Study</title>
+<style>
+  :root {
+    --bg: #f7f5ef;
+    --card: #ffffff;
+    --ink: #1e2a25;
+    --accent: #2f7d54;
+    --accent-2: #d9722b;
+    --muted: #6e7672;
+    --hide: #e8efe9;
+    --shadow: 0 2px 8px rgba(0,0,0,0.06);
+    --border: #d8d4c7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  header {
+    background: var(--accent);
+    color: white;
+    padding: 18px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: var(--shadow);
+  }
+  header h1 { margin: 0 0 6px 0; font-size: 22px; }
+  header .sub { font-size: 13px; opacity: 0.9; }
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .toolbar button, .toolbar select {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .toolbar button:hover { background: rgba(255,255,255,0.25); }
+  .toolbar button.active { background: var(--accent-2); border-color: var(--accent-2); }
+  .progress {
+    margin-left: auto;
+    font-size: 13px;
+    align-self: center;
+  }
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .category {
+    margin-bottom: 28px;
+  }
+  .category h2 {
+    font-size: 18px;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: var(--shadow);
+  }
+  .card:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .term {
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .term .hint {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .answer {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--hide);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    display: none;
+    font-size: 15px;
+  }
+  .card.revealed .answer { display: block; }
+  .card.revealed .hint { display: none; }
+  .marks {
+    margin-top: 10px;
+    display: none;
+    gap: 8px;
+  }
+  .card.revealed .marks { display: flex; }
+  .mark-btn {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+  }
+  .mark-btn.know { color: #2f7d54; }
+  .mark-btn.know:hover { background: #e8f5e9; }
+  .mark-btn.unsure { color: #d9722b; }
+  .mark-btn.unsure:hover { background: #fff3e0; }
+  .card[data-status="know"] { border-left: 4px solid #2f7d54; }
+  .card[data-status="unsure"] { border-left: 4px solid #d9722b; }
+
+  .diagram {
+    background: #fdfcf6;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin: 12px 0;
+  }
+  .diagram-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  table.compare {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 6px;
+  }
+  table.compare th, table.compare td {
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    text-align: left;
+  }
+  table.compare th { background: #ecf2ee; color: var(--accent); }
+  .pill-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    flex: 1;
+    min-width: 140px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .pill .label { font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+  .pill .value { font-size: 13px; color: var(--muted); }
+  .tier-row .pill:nth-child(1) { background: #f5e6d3; }
+  .tier-row .pill:nth-child(2) { background: #e6e6e6; }
+  .tier-row .pill:nth-child(3) { background: #f5e6a8; }
+  .tier-row .pill:nth-child(4) { background: #e0e8ec; }
+  .quiz-only .card { display: none; }
+  .quiz-only .card.active { display: block; }
+  .quiz-nav {
+    display: none;
+    gap: 10px;
+    margin-top: 16px;
+    justify-content: center;
+  }
+  .quiz-only .quiz-nav { display: flex; }
+  .quiz-nav button {
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: 1px solid var(--accent);
+    background: white;
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .quiz-nav button:hover { background: var(--accent); color: white; }
+  .hidden { display: none !important; }
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 20px;
+  }
+  @media (max-width: 600px) {
+    header { padding: 14px 16px; }
+    main { padding: 16px; }
+    .pill { min-width: 120px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Health Insurance Exam — Study Deck</h1>
+  <div class="sub">Click any card to reveal. Mark as <b>Got it</b> or <b>Review</b> to track progress.</div>
+  <div class="toolbar">
+    <button id="modeBrowse" class="active">Browse</button>
+    <button id="modeQuiz">Quiz Mode</button>
+    <button id="reveal">Reveal All</button>
+    <button id="hideAll">Hide All</button>
+    <button id="shuffle">Shuffle</button>
+    <button id="resetProgress">Reset Progress</button>
+    <select id="filter">
+      <option value="all">All cards</option>
+      <option value="unmarked">Unmarked only</option>
+      <option value="unsure">Review only</option>
+      <option value="know">Known only</option>
+    </select>
+    <div class="progress" id="progress">0 / 0 known</div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ CATEGORY: CORE PRINCIPLES ============ -->
+<section class="category" data-cat="Core Principles">
+  <h2>Core Principles & Risk</h2>
+
+  <div class="card" data-id="indemnity">
+    <div class="term">Indemnity <span class="hint">click to reveal</span></div>
+    <div class="answer">Restore — <b>health</b> insurance reimburses actual loss.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="valued">
+    <div class="term">Valued Contracts <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Predetermined amount</b> paid — life insurance contracts.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="pure-risk">
+    <div class="term">Pure Risk <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Insurable.</b> Only the chance of loss — no chance of gain.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="spec-risk">
+    <div class="term">Speculative Risk <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Not insurable.</b> Can result in gain (e.g. gambling, investments).</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-title">Pure vs Speculative Risk</div>
+    <table class="compare">
+      <tr><th>Pure Risk</th><th>Speculative Risk</th></tr>
+      <tr>
+        <td>Loss only — no upside<br><i>Insurable</i></td>
+        <td>Loss or gain possible<br><i>Not insurable</i></td>
+      </tr>
+      <tr>
+        <td>Fire, illness, death, accident</td>
+        <td>Stocks, gambling, business ventures</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card" data-id="peril">
+    <div class="term">Peril <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Cause of loss</b> (fire, theft, illness).</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="accident">
+    <div class="term">Accident <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Unforeseen loss.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="occurrence">
+    <div class="term">Occurrence <span class="hint">click to reveal</span></div>
+    <div class="answer">Any event that causes loss. <i>Broader than "accident."</i></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="accidental-means">
+    <div class="term">Accidental Means <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>More restrictive</b> than accident — the <b>cause</b> must also be unintended, not just the result.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="morale">
+    <div class="term">Morale Hazard <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Careless</b> behavior because insurance exists (e.g. leaving keys in car).</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="morbidity">
+    <div class="term">Morbidity <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Risk of loss from illness or accident.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="consideration">
+    <div class="term">Consideration <span class="hint">click to reveal</span></div>
+    <div class="answer">Given by <b>applicant</b> (premium + statements) in exchange for insurer's agreement to pay.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+</section>
+
+<!-- ============ CATEGORY: INSURER TYPES ============ -->
+<section class="category" data-cat="Insurer Types">
+  <h2>Insurer Types & Distribution</h2>
+
+  <div class="card" data-id="stock">
+    <div class="term">Stock Insurance Company <span class="hint">click to reveal</span></div>
+    <div class="answer">Owned by <b>private investors</b>. Issues <b>nonparticipating policies</b> — no dividends, no privileges to policyholders.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="mutual">
+    <div class="term">Mutual Insurance Company <span class="hint">click to reveal</span></div>
+    <div class="answer">Owned by policyholders. Issues <b>participating policies</b> — divisible surplus (dividends) paid to policyholders.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="mixed">
+    <div class="term">Mixed Plan <span class="hint">click to reveal</span></div>
+    <div class="answer">Combines features of <b>both</b> stock and mutual companies.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-title">Stock vs Mutual</div>
+    <table class="compare">
+      <tr><th></th><th>Stock</th><th>Mutual</th></tr>
+      <tr><td>Owned by</td><td>Private investors</td><td>Policyholders</td></tr>
+      <tr><td>Policy type</td><td>Nonparticipating</td><td>Participating</td></tr>
+      <tr><td>Dividends?</td><td>No</td><td>Yes (divisible surplus)</td></tr>
+    </table>
+  </div>
+
+  <div class="card" data-id="captive">
+    <div class="term">Captive Insurer <span class="hint">click to reveal</span></div>
+    <div class="answer">Limits exposure to <b>those of its owners</b> only.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="career">
+    <div class="term">Career Agencies <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Recruit, train, and supervise</b> agents.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="treaty">
+    <div class="term">Treaty Reinsurance <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Automatic</b> sharing of risk based on previously established criteria.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="facultative">
+    <div class="term">Facultative Reinsurance <span class="hint">click to reveal</span></div>
+    <div class="answer">Designed to cover a <b>specific risk</b> (case-by-case).</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-title">Reinsurance — Treaty vs Facultative</div>
+    <table class="compare">
+      <tr><th>Treaty</th><th>Facultative</th></tr>
+      <tr><td>Automatic — pre-set criteria</td><td>Case-by-case — specific risk</td></tr>
+      <tr><td>Bulk / portfolio</td><td>One policy at a time</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ CATEGORY: AGENT AUTHORITY ============ -->
+<section class="category" data-cat="Agent Authority">
+  <h2>Agent Authority</h2>
+
+  <div class="card" data-id="express">
+    <div class="term">Express Authority <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Written in the contract</b> between agent and insurer.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="implied">
+    <div class="term">Implied Authority <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Necessary to do the job</b> — not written but reasonable to assume.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="apparent">
+    <div class="term">Apparent Authority <span class="hint">click to reveal</span></div>
+    <div class="answer">What <b>customers assume</b> the agent can do based on appearance/behavior.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-title">Three Types of Authority</div>
+    <div class="pill-row">
+      <div class="pill"><div class="label">Express</div><div class="value">Written in contract</div></div>
+      <div class="pill"><div class="label">Implied</div><div class="value">Necessary to do the job</div></div>
+      <div class="pill"><div class="label">Apparent</div><div class="value">What customers assume</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CATEGORY: HEALTH PLAN TYPES ============ -->
+<section class="category" data-cat="Plan Types">
+  <h2>Health Plan Types</h2>
+
+  <div class="card" data-id="ppo">
+    <div class="term">PPO Plans <span class="hint">click to reveal</span></div>
+    <div class="answer">Provide <b>flexibility</b> in choosing healthcare providers.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="hmo">
+    <div class="term">HMO contract basis <span class="hint">click to reveal</span></div>
+    <div class="answer">HMOs are contracted on a <b>pre-paid service basis</b>.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="pos">
+    <div class="term">Point of Service (POS) Plan <span class="hint">click to reveal</span></div>
+    <div class="answer">Combines features of HMO and PPO — allows insured to choose <b>in-network or out-of-network</b>.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="hdhp">
+    <div class="term">HDHP (High Deductible Health Plan) <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Lower premiums, higher out-of-pocket</b> costs.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-title">Plan Types at a Glance</div>
+    <table class="compare">
+      <tr><th>Plan</th><th>Provider Flexibility</th><th>Cost Structure</th></tr>
+      <tr><td>HMO</td><td>Restricted — in-network only</td><td>Pre-paid service</td></tr>
+      <tr><td>PPO</td><td>Flexible choice of providers</td><td>Higher premiums, more freedom</td></tr>
+      <tr><td>POS</td><td>In or out-of-network</td><td>HMO + PPO hybrid</td></tr>
+      <tr><td>HDHP</td><td>Varies</td><td>Low premium, high deductible</td></tr>
+    </table>
+  </div>
+
+  <div class="card" data-id="bcbs">
+    <div class="term">Blue Cross / Blue Shield <span class="hint">click to reveal</span></div>
+    <div class="answer">Covers hospital expenses, covers surgery/medical expenses, gives policies for individual/group, members are <b>subscribers</b>.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="medical-indem">
+    <div class="term">Medical Indemnity <span class="hint">click to reveal</span></div>
+    <div class="answer">Traditional <b>reimbursement</b> plan.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="hospital-indem">
+    <div class="term">Hospital Indemnity <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Fixed daily amount</b> paid regardless of actual cost.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="basic-med">
+    <div class="term">Basic Medical Expense <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>First-dollar</b> coverage — no deductibles.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="nonsched-dental">
+    <div class="term">Non-Scheduled Dental Plans <span class="hint">click to reveal</span></div>
+    <div class="answer">Coverage is <b>divided into categories</b>.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="formulary">
+    <div class="term">Formulary <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>List of medications covered</b> by a plan.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="principle-sum">
+    <div class="term">Principal Sum <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Amount payable for accidental death.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="capital-sum">
+    <div class="term">Standard % Capital Sum <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>50%</b> (paid for dismemberment — % of principal sum).</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="accidental-window">
+    <div class="term">Time frame for accidental loss to occur <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>90 days.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+</section>
+
+<!-- ============ CATEGORY: MARKETPLACE / ACA ============ -->
+<section class="category" data-cat="Marketplace">
+  <h2>ACA Marketplace Tiers</h2>
+
+  <div class="card" data-id="bronze">
+    <div class="term">Bronze Plan <span class="hint">click to reveal</span></div>
+    <div class="answer">Plan pays <b>60%</b> of expenses.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+  <div class="card" data-id="silver">
+    <div class="term">Silver Plan <span class="hint">click to reveal</span></div>
+    <div class="answer">Plan pays <b>70%</b> of expenses.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+  <div class="card" data-id="gold">
+    <div class="term">Gold Plan <span class="hint">click to reveal</span></div>
+    <div class="answer">Plan pays <b>80%</b> of expenses.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+  <div class="card" data-id="platinum">
+    <div class="term">Platinum Plan <span class="hint">click to reveal</span></div>
+    <div class="answer">Plan pays <b>90%</b> of expenses.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-title">Metal Tiers — Plan Coverage %</div>
+    <div class="pill-row tier-row">
+      <div class="pill"><div class="label">Bronze</div><div class="value">60%</div></div>
+      <div class="pill"><div class="label">Silver</div><div class="value">70%</div></div>
+      <div class="pill"><div class="label">Gold</div><div class="value">80%</div></div>
+      <div class="pill"><div class="label">Platinum</div><div class="value">90%</div></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:8px;">Higher metal = higher % plan pays, higher premium.</div>
+  </div>
+</section>
+
+<!-- ============ CATEGORY: GROUP / ELIGIBILITY ============ -->
+<section class="category" data-cat="Group & Eligibility">
+  <h2>Group Coverage & Eligibility</h2>
+
+  <div class="card" data-id="probation">
+    <div class="term">Probationary Period <span class="hint">click to reveal</span></div>
+    <div class="answer">Time before <b>eligibility to join the group</b> begins.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="convert">
+    <div class="term">Days to convert to another plan <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>31 days.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="met">
+    <div class="term">Multiple Employer Trust (MET) <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Bonds several employers</b> together for one group rate.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="aob">
+    <div class="term">Assignment of Benefits <span class="hint">click to reveal</span></div>
+    <div class="answer">Makes <b>claims easier</b> for the insured (benefit paid directly to provider).</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="preex">
+    <div class="term">Pre-existing Conditions Exclusion Waiver — Eligibility <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>No break greater than 63 days</b> in prior coverage.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="cob">
+    <div class="term">Coordination of Benefits (COB) <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Avoids overinsurance</b> when insured is covered by multiple plans.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="indiv-med-term">
+    <div class="term">Individual Medical Expense Insurance — Term <span class="hint">click to reveal</span></div>
+    <div class="answer">Written for <b>1 year.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="small-employer">
+    <div class="term">Small Employer <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>2–50 employees.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="info-request">
+    <div class="term">Days for info request from client to insurers <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>30 days.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="ltc-renew">
+    <div class="term">Long Term Care Policy Renewal <span class="hint">click to reveal</span></div>
+    <div class="answer">LTC policies must be <b>renewable for life.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="wellness">
+    <div class="term">Wellness Programs <span class="hint">click to reveal</span></div>
+    <div class="answer">Focus on <b>participant's problems</b> (individual health risk).</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+</section>
+
+<!-- ============ CATEGORY: DISABILITY ============ -->
+<section class="category" data-cat="Disability">
+  <h2>Disability Income</h2>
+
+  <div class="card" data-id="earned-decrease">
+    <div class="term">Earned income decrease to qualify for disability <span class="hint">click to reveal</span></div>
+    <div class="answer">Must decrease by <b>20%</b>.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="recurrence">
+    <div class="term">Recurrence Provision <span class="hint">click to reveal</span></div>
+    <div class="answer">Disability returns <b>within 6 months</b> of return to work — treated as same claim.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="disability-loss">
+    <div class="term">Disability Loss vs Residual <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Loss</b> is defined as % of <b>income</b>; <b>residual</b> is defined as % of <b>benefit</b>.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="group-disability">
+    <div class="term">Group Disability <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Occupational insurance</b> (covers on-the-job).</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="boe">
+    <div class="term">Business Overhead Expense (BOE) <span class="hint">click to reveal</span></div>
+    <div class="answer">Ensures the small business owner has a <b>business to return to.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="partner-policies">
+    <div class="term">Total Policies — Partner Buy-Sell Formula <span class="hint">click to reveal</span></div>
+    <div class="answer"><b># partners × (# partners − 1)</b>. Each partner insures each other partner.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="indiv-di">
+    <div class="term">Individual Disability Income — Tax Treatment <span class="hint">click to reveal</span></div>
+    <div class="answer">Premiums <b>not deductible</b>; benefits <b>not taxable</b>.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="econ-death">
+    <div class="term">Economic Death <span class="hint">click to reveal</span></div>
+    <div class="answer">Prolonged disability prevents earning a living.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="di-over65">
+    <div class="term">Disability policies & age 65+ <span class="hint">click to reveal</span></div>
+    <div class="answer">Insured must be <b>actively working</b> if over 65.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+</section>
+
+<!-- ============ CATEGORY: MEDICARE / HSA ============ -->
+<section class="category" data-cat="Medicare & HSA">
+  <h2>Medicare, HSA, FSA</h2>
+
+  <div class="card" data-id="medicare">
+    <div class="term">Medicare — basics <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Federal</b> program for individuals age <b>&gt; 65</b>.<br>
+      • Up to <b>100 days</b> in nursing facility — <b>first 20 free</b><br>
+      • Insured pays for the <b>first 3 pints of blood</b><br>
+      • <b>No age minimum</b> for Medicare Supplemental
+    </div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-title">Medicare Skilled Nursing Facility — 100 Day Benefit</div>
+    <div style="display:flex;height:32px;border:1px solid var(--border);border-radius:6px;overflow:hidden;font-size:12px;">
+      <div style="flex:20;background:#2f7d54;color:white;display:flex;align-items:center;justify-content:center;">Days 1–20: FREE</div>
+      <div style="flex:80;background:#f5e6a8;display:flex;align-items:center;justify-content:center;">Days 21–100: copay</div>
+    </div>
+  </div>
+
+  <div class="card" data-id="hsa-tax">
+    <div class="term">Non-medical HSA distributions <span class="hint">click to reveal</span></div>
+    <div class="answer">Taxed at <b>20%</b>.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="fsa">
+    <div class="term">FSA — Use it or Lose it <span class="hint">click to reveal</span></div>
+    <div class="answer">Flexible Spending Accounts: funds <b>must be used</b> within the plan year or are forfeited.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+</section>
+
+<!-- ============ CATEGORY: POLICY PROVISIONS ============ -->
+<section class="category" data-cat="Provisions">
+  <h2>Policy Provisions & Receipts</h2>
+
+  <div class="card" data-id="mandatory">
+    <div class="term">Mandatory Provision <span class="hint">click to reveal</span></div>
+    <div class="answer">For the <b>insured's benefit.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="optional">
+    <div class="term">Optional Provision <span class="hint">click to reveal</span></div>
+    <div class="answer">For the <b>insurer's benefit.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="notice-claim">
+    <div class="term">Notice of Claim — Deadline <span class="hint">click to reveal</span></div>
+    <div class="answer">Due <b>within 20 days</b> of loss.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="suit-limit">
+    <div class="term">Policyholder Lawsuit — Deadline <span class="hint">click to reveal</span></div>
+    <div class="answer">Must bring suit within <b>3 years.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="insuring">
+    <div class="term">Insuring Clause <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>States amount of benefits</b> to be paid.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="entire-contract">
+    <div class="term">Entire Contract Clause <span class="hint">click to reveal</span></div>
+    <div class="answer">The <b>application becomes part of the policy.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="opt-renew">
+    <div class="term">Optionally Renewable Provision <span class="hint">click to reveal</span></div>
+    <div class="answer">The <b>insurer can cancel</b> on a policy anniversary.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="conditional-rcpt">
+    <div class="term">Conditional Receipt <span class="hint">click to reveal</span></div>
+    <div class="answer">Coverage only takes effect <b>if underwriting approves.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="binding-rcpt">
+    <div class="term">Binding Receipt <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>Immediate coverage</b> until the insurer decides.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="effective">
+    <div class="term">Effective Date of Coverage <span class="hint">click to reveal</span></div>
+    <div class="answer"><b>When premium is paid.</b></div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="card" data-id="inspection-rcpt">
+    <div class="term">Inspection Receipt vs Premium Receipt <span class="hint">click to reveal</span></div>
+    <div class="answer">An <b>inspection receipt is NOT</b> a premium receipt — it just shows the applicant has reviewed the policy; no coverage attached.</div>
+    <div class="marks"><button class="mark-btn know">Got it</button><button class="mark-btn unsure">Review</button></div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-title">Receipts at a Glance</div>
+    <table class="compare">
+      <tr><th>Receipt</th><th>When does coverage start?</th></tr>
+      <tr><td>Conditional</td><td>Only IF underwriting approves</td></tr>
+      <tr><td>Binding</td><td>Immediately — until insurer decides</td></tr>
+      <tr><td>Inspection</td><td>No coverage — just proof of review</td></tr>
+      <tr><td>Premium (Effective Date)</td><td>When premium is paid</td></tr>
+    </table>
+  </div>
+</section>
+
+<div class="footer">Built from your notes — good luck. Progress is saved locally in your browser.</div>
+
+</main>
+
+<script>
+  const cards = Array.from(document.querySelectorAll('.card'));
+  const STORAGE_KEY = 'health-exam-progress-v1';
+
+  // Load progress
+  function loadProgress() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch { return {}; }
+  }
+  function saveProgress(p) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+  }
+  let progress = loadProgress();
+
+  // Apply progress to DOM
+  function applyProgress() {
+    cards.forEach(c => {
+      const id = c.dataset.id;
+      if (progress[id]) c.dataset.status = progress[id];
+      else delete c.dataset.status;
+    });
+    updateCounter();
+  }
+  function updateCounter() {
+    const total = cards.length;
+    const known = cards.filter(c => c.dataset.status === 'know').length;
+    document.getElementById('progress').textContent = `${known} / ${total} known`;
+  }
+
+  // Reveal toggle
+  cards.forEach(c => {
+    c.addEventListener('click', e => {
+      if (e.target.classList.contains('mark-btn')) return;
+      c.classList.toggle('revealed');
+    });
+    c.querySelectorAll('.mark-btn').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = c.dataset.id;
+        const status = b.classList.contains('know') ? 'know' : 'unsure';
+        if (progress[id] === status) delete progress[id];
+        else progress[id] = status;
+        saveProgress(progress);
+        applyProgress();
+      });
+    });
+  });
+
+  // Toolbar buttons
+  document.getElementById('reveal').onclick = () => cards.forEach(c => c.classList.add('revealed'));
+  document.getElementById('hideAll').onclick = () => cards.forEach(c => c.classList.remove('revealed'));
+  document.getElementById('shuffle').onclick = () => {
+    document.querySelectorAll('.category').forEach(cat => {
+      const cards = Array.from(cat.querySelectorAll('.card'));
+      const diagrams = Array.from(cat.querySelectorAll('.diagram'));
+      // Shuffle cards in place (keep diagrams pinned in original spots)
+      const shuffled = cards.slice().sort(() => Math.random() - 0.5);
+      // Find first card position and replace siblings
+      const parent = cat;
+      cards.forEach(c => c.remove());
+      // Put shuffled cards after the h2 (before diagrams in same order interleaved)
+      const h2 = cat.querySelector('h2');
+      shuffled.forEach(c => h2.after(c));
+    });
+  };
+  document.getElementById('resetProgress').onclick = () => {
+    if (!confirm('Clear all progress?')) return;
+    progress = {};
+    saveProgress(progress);
+    cards.forEach(c => c.classList.remove('revealed'));
+    applyProgress();
+  };
+
+  // Filter
+  document.getElementById('filter').onchange = e => {
+    const val = e.target.value;
+    cards.forEach(c => {
+      const status = c.dataset.status || 'none';
+      let show = true;
+      if (val === 'unmarked') show = status === 'none';
+      else if (val === 'unsure') show = status === 'unsure';
+      else if (val === 'know') show = status === 'know';
+      c.style.display = show ? '' : 'none';
+    });
+  };
+
+  // Quiz Mode
+  let quizMode = false;
+  let quizCards = [];
+  let quizIdx = 0;
+  function startQuiz() {
+    quizMode = true;
+    document.getElementById('modeBrowse').classList.remove('active');
+    document.getElementById('modeQuiz').classList.add('active');
+    document.body.classList.add('quiz-only');
+    // Pick visible cards
+    quizCards = cards.filter(c => c.style.display !== 'none');
+    quizCards.sort(() => Math.random() - 0.5);
+    quizIdx = 0;
+    showQuizCard();
+    // Add nav if not present
+    if (!document.getElementById('quizNav')) {
+      const nav = document.createElement('div');
+      nav.id = 'quizNav';
+      nav.className = 'quiz-nav';
+      nav.innerHTML = `
+        <button id="qPrev">← Prev</button>
+        <button id="qFlip">Flip</button>
+        <button id="qNext">Next →</button>
+      `;
+      document.getElementById('main').appendChild(nav);
+      document.getElementById('qPrev').onclick = () => { quizIdx = (quizIdx - 1 + quizCards.length) % quizCards.length; showQuizCard(); };
+      document.getElementById('qNext').onclick = () => { quizIdx = (quizIdx + 1) % quizCards.length; showQuizCard(); };
+      document.getElementById('qFlip').onclick = () => {
+        const c = quizCards[quizIdx];
+        if (c) c.classList.toggle('revealed');
+      };
+    }
+  }
+  function showQuizCard() {
+    cards.forEach(c => c.classList.remove('active', 'revealed'));
+    if (quizCards[quizIdx]) quizCards[quizIdx].classList.add('active');
+  }
+  function endQuiz() {
+    quizMode = false;
+    document.getElementById('modeBrowse').classList.add('active');
+    document.getElementById('modeQuiz').classList.remove('active');
+    document.body.classList.remove('quiz-only');
+    cards.forEach(c => c.classList.remove('active'));
+  }
+  document.getElementById('modeQuiz').onclick = startQuiz;
+  document.getElementById('modeBrowse').onclick = endQuiz;
+
+  // Keyboard shortcuts in quiz mode
+  document.addEventListener('keydown', e => {
+    if (!quizMode) return;
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); quizIdx = (quizIdx + 1) % quizCards.length; showQuizCard(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); quizIdx = (quizIdx - 1 + quizCards.length) % quizCards.length; showQuizCard(); }
+    else if (e.key === 'Enter' || e.key === 'f') { e.preventDefault(); const c = quizCards[quizIdx]; if (c) c.classList.toggle('revealed'); }
+  });
+
+  applyProgress();
+</script>
+
+</body>
+</html>

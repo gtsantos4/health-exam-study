@@ -199,10 +199,82 @@
     font-size: 12px;
     padding: 20px;
   }
-  @media (max-width: 600px) {
-    header { padding: 14px 16px; }
-    main { padding: 16px; }
-    .pill { min-width: 120px; }
+  @media (max-width: 700px) {
+    header {
+      padding: 10px 14px;
+      position: static;
+    }
+    header h1 { font-size: 18px; margin-bottom: 2px; }
+    header .sub { display: none; }
+    .toolbar {
+      gap: 6px;
+      margin-top: 8px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    .toolbar::-webkit-scrollbar { display: none; }
+    .toolbar button, .toolbar select {
+      flex-shrink: 0;
+      font-size: 14px;
+      padding: 7px 12px;
+    }
+    .progress {
+      margin-left: 0;
+      width: 100%;
+      order: -1;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    main { padding: 14px; }
+    .category { margin-bottom: 22px; }
+    .category h2 { font-size: 16px; margin-bottom: 10px; }
+    .card {
+      padding: 16px 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    .term { font-size: 17px; line-height: 1.35; padding-right: 24px; }
+    .term .hint { display: none; }
+    .card { position: relative; }
+    .card::after {
+      content: "›";
+      position: absolute;
+      right: 16px;
+      top: 14px;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1;
+      transition: transform 0.15s ease;
+    }
+    .card.revealed::after {
+      content: "⌄";
+      color: var(--accent);
+    }
+    .answer {
+      font-size: 16px;
+      padding: 12px 14px;
+      line-height: 1.55;
+    }
+    .marks { gap: 10px; }
+    .mark-btn {
+      flex: 1;
+      font-size: 14px;
+      padding: 10px 14px;
+      font-weight: 500;
+    }
+    .diagram { padding: 12px; }
+    table.compare {
+      font-size: 13px;
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pill-row { gap: 8px; }
+    .pill { min-width: calc(50% - 4px); padding: 10px 8px; font-size: 13px; }
+    .quiz-nav button { padding: 12px 22px; font-size: 15px; }
   }
 </style>
 </head>
